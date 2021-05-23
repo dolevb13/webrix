@@ -14,18 +14,6 @@
  * limitations under the License.
  */
 
-import {useState, useRef, useEffect} from 'react';
-import {readResizeObserverEntry} from 'utility/rect';
+import useAnimationFrame from './useAnimationFrame';
 
-export default ref => {
-    const [dimensions, setDimensions] = useState({width: 0, height: 0});
-    const observer = useRef(new window.ResizeObserver(entries => {
-        setDimensions(readResizeObserverEntry(entries[0]));
-    }));
-    useEffect(() => {
-        const {current: obs} = observer;
-        obs.observe(ref.current);
-        return () => obs.disconnect();
-    }, [ref]);
-    return dimensions;
-};
+export default useAnimationFrame;

@@ -16,20 +16,27 @@
 
 import {useCallback, useEffect, useRef} from 'react';
 
-export default (callback, threshold) => {
-    const wait = useRef(false);
-    const timeout = useRef(-1);
+export default (callback, recurring = false) => {
+    const cb = useRef(callback);
+    const id = useRef(-1);
 
-    useEffect(() => () => clearTimeout(timeout.current), []); // No need for deps here since 'timeout' is mutated
+    cb.current = callback;
 
-    return useCallback((...args) => {
-        if (!wait.current) {
-            callback(...args);
-            wait.current = true;
-            clearTimeout(timeout.current);
-            timeout.current = setTimeout(() => {
-                wait.current = false;
-            }, threshold);
-        }
-    }, [callback, threshold]);
+    const start = useCallback((...args) => {
+        window.cancelAnimationFrame(id.current);
+        id.current = window.requestAnimationFrame(() => {
+            cb.current(...args);
+            if (recurring) {
+                start(...args);
+            }
+        });
+    }, [recurring]);
+
+    const stop = useCallback(() => {
+        window.cancelAnimationFrame(id.current);
+    }, []);
+
+    useEffect(() => () => window.cancelAnimationFrame(id.current), []);
+
+    return {start, stop};
 };
